@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.TRANSMIT_IR" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.consumerir" android:required="false" />
 
     <!-- usesCleartextTraffic : le démarrage du service télécommande (DIAL, port 8009) est en HTTP sur le réseau local -->

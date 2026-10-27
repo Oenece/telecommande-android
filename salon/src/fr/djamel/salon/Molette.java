@@ -8,6 +8,9 @@ import android.graphics.Path;
 import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.os.SystemClock;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
@@ -40,6 +43,12 @@ final class Molette extends View {
 
     private static final float DEGRES_PAR_CRAN = 30f; // 12 crans par tour
     private static final float SEUIL_ROTATION = 20f;
+
+    // Vibrations de la rotation, comme une molette crantée : un petit cran à chaque graduation (6°),
+    // un cran franc à chaque saut dans la vidéo (30°). On passe par le vibreur : CLOCK_TICK ne vibre pas sur tous les téléphones.
+    private static final float DEGRES_PAR_GRADUATION = 6f;
+    private static final int MS_GRADUATION = 8, MS_CRAN = 22;
+    private static final long ECART_MIN_MS = 35; // en rotation rapide, les petits crans ne se fondent pas en bourdonnement
     private static final String[] DIRECTIONS = {"dpad_right", "dpad_down", "dpad_left", "dpad_up"};
 
     private final float d;
@@ -62,6 +71,10 @@ final class Molette extends View {
     private float x0, y0, xPas, yPas;
     private long tDebut;
     private float eclat;                  // 0..1 : traînée lumineuse de la rotation
+    private float cumulGraduation;        // angle parcouru depuis la dernière graduation
+    private long derniereVibration;
+
+    private final Vibrator vibreur;
 
     private final Runnable repetition = new Runnable() {
         @Override public void run() {
@@ -95,6 +108,7 @@ final class Molette extends View {
     Molette(Context c) {
         super(c);
         d = c.getResources().getDisplayMetrics().density;
+        vibreur = (Vibrator) c.getSystemService(Context.VIBRATOR_SERVICE);
         trait.setStyle(Paint.Style.STROKE);
         trait.setStrokeCap(Paint.Cap.ROUND);
         trait.setStrokeJoin(Paint.Join.ROUND);
@@ -271,17 +285,26 @@ final class Molette extends View {
                     if (mode == Mode.ANNEAU && Math.abs(angleEcart(a, angleDepart)) > SEUIL_ROTATION) {
                         mode = Mode.ROTATION; // c'est une rotation, pas un appui sur une flèche
                         removeCallbacks(repetition);
-                        cumul = angleEcart(a, angleDepart);
+                        cumul = cumulGraduation = angleEcart(a, angleDepart);
                         direction = -1;
+                    } else if (mode == Mode.ROTATION) {
+                        cumulGraduation += delta;
                     }
                     if (mode == Mode.ROTATION) {
+                        boolean cran = false, graduation = false;
                         while (Math.abs(cumul) >= DEGRES_PAR_CRAN) {
                             int sens = cumul > 0 ? 1 : -1; // angle croissant = sens horaire à l'écran
                             cumul -= sens * DEGRES_PAR_CRAN;
                             crans += sens;
                             if (ecouteur != null) ecouteur.defiler(sens);
-                            performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                            cran = true;
                         }
+                        while (Math.abs(cumulGraduation) >= DEGRES_PAR_GRADUATION) {
+                            cumulGraduation -= Math.signum(cumulGraduation) * DEGRES_PAR_GRADUATION;
+                            graduation = true;
+                        }
+                        if (cran) vibrer(MS_CRAN, true);
+                        else if (graduation) vibrer(MS_GRADUATION, false);
                         eclat = 1;
                     }
                     invalidate();
@@ -317,6 +340,16 @@ final class Molette extends View {
                 return true;
         }
         return super.onTouchEvent(e);
+    }
+
+    /** Une impulsion courte ; un petit cran trop proche du précédent est sauté, un cran franc passe toujours. */
+    private void vibrer(int ms, boolean prioritaire) {
+        long t = SystemClock.uptimeMillis();
+        if (!prioritaire && t - derniereVibration < ECART_MIN_MS) return;
+        derniereVibration = t;
+        if (vibreur != null && vibreur.hasVibrator()) {
+            vibreur.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE));
+        }
     }
 
     private void finir() {

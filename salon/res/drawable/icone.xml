@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Une télécommande stylisée : pavé tactile clair, deux boutons -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#1C1C1E" android:pathData="M10,0h28a10,10 0 0,1 10,10v28a10,10 0 0,1 -10,10h-28a10,10 0 0,1 -10,-10v-28a10,10 0 0,1 10,-10z" />
+    <path android:fillColor="#3A3A3C" android:pathData="M17,8h14a3,3 0 0,1 3,3v26a3,3 0 0,1 -3,3h-14a3,3 0 0,1 -3,-3v-26a3,3 0 0,1 3,-3z" />
+    <path android:fillColor="#F5F5F7" android:pathData="M18,11h12a1,1 0 0,1 1,1v10a1,1 0 0,1 -1,1h-12a1,1 0 0,1 -1,-1v-10a1,1 0 0,1 1,-1z" />
+    <path android:fillColor="#0A84FF" android:pathData="M21,30m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+    <path android:fillColor="#FF453A" android:pathData="M27,30m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+</vector>

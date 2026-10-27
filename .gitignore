@@ -1,0 +1,12 @@
+# Seules les deux applis sont publiees : le document d'idees et les sauvegardes du telephone restent locaux
+/*
+!/.gitignore
+!/README.md
+!/salon/
+!/testeur-ir/
+
+# Sorties de build et cles de signature (recreees par build.ps1)
+build/
+*.apk
+*.idsig
+*.jks
